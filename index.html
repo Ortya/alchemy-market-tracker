@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>あるけみすと相場</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+    }
+    header {
+      background: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+    main {
+      padding: 1rem;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    .item {
+      background: white;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>あるけみすと 相場リアルタイム表示</h1>
+  </header>
+  <main>
+    <input type="text" id="searchBox" placeholder="アイテム名で検索">
+    <div id="itemList">読み込み中...</div>
+  </main>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const itemList = document.getElementById("itemList");
+      const searchBox = document.getElementById("searchBox");
+
+      // 仮のアイテムデータ（本番ではAPIなどと連携）
+      const items = [
+        { name: "星のかけら", price: 120 },
+        { name: "光の粉", price: 85 },
+        { name: "精霊の涙", price: 300 },
+        { name: "夢幻草", price: 220 },
+        { name: "月光石", price: 430 }
+      ];
+
+      function render(filteredItems) {
+        itemList.innerHTML = "";
+        if (filteredItems.length === 0) {
+          itemList.innerHTML = "<p>該当するアイテムはありません</p>";
+          return;
+        }
+        filteredItems.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `<strong>${item.name}</strong>：${item.price} G`;
+          itemList.appendChild(div);
+        });
+      }
+
+      // 初期表示
+      render(items);
+
+      // 検索イベント
+      searchBox.addEventListener("input", () => {
+        const keyword = searchBox.value.trim();
+        const filtered = items.filter(item =>
+          item.name.includes(keyword)
+        );
+        render(filtered);
+      });
+    });
+  </script>
+</body>
+</html>
