@@ -2,86 +2,129 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>あるけみすと相場</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>あるけみすと 相場ビューア</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: 'Arial', sans-serif;
       margin: 0;
-      padding: 0;
-      background: #f9f9f9;
+      font-family: 'Kosugi Maru', sans-serif;
+      background: linear-gradient(to bottom right, #f0f8ff, #e6f0ff);
+      padding: 1rem;
+      color: #333;
     }
-    header {
-      background: #2c3e50;
-      color: white;
+    h1 {
       text-align: center;
-      padding: 1rem;
+      color: #3a3a3a;
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
     }
-    main {
-      padding: 1rem;
-    }
-    input[type="text"] {
+    input {
       width: 100%;
-      padding: 0.5rem;
+      padding: 0.7rem 1rem;
       font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
       margin-bottom: 1rem;
     }
     .item {
       background: white;
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
-      border: 1px solid #ccc;
+      padding: 1rem;
+      margin-bottom: 0.8rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.1s ease;
+    }
+    .item:hover {
+      transform: scale(1.02);
+      cursor: pointer;
+    }
+    #chartContainer {
+      background: white;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-top: 2rem;
+    }
+    canvas {
+      max-width: 100%;
+      height: auto;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>あるけみすと 相場リアルタイム表示</h1>
-  </header>
-  <main>
-    <input type="text" id="searchBox" placeholder="アイテム名で検索">
-    <div id="itemList">読み込み中...</div>
-  </main>
+
+  <h1>🧪 あるけみすと 相場ビューア</h1>
+  <input type="text" id="searchBox" placeholder="🔍 アイテム名で検索...">
+
+  <div id="itemList">読み込み中...</div>
+
+  <div id="chartContainer">
+    <canvas id="priceChart"></canvas>
+  </div>
+
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const itemList = document.getElementById("itemList");
-      const searchBox = document.getElementById("searchBox");
+    const items = [
+      { name: "星のかけら", id: "hoshi" },
+      { name: "光の粉", id: "hikari" },
+      { name: "精霊の涙", id: "namida" }
+    ];
 
-      // 仮のアイテムデータ（本番ではAPIなどと連携）
-      const items = [
-        { name: "星のかけら", price: 120 },
-        { name: "光の粉", price: 85 },
-        { name: "精霊の涙", price: 300 },
-        { name: "夢幻草", price: 220 },
-        { name: "月光石", price: 430 }
-      ];
+    const itemList = document.getElementById("itemList");
+    const searchBox = document.getElementById("searchBox");
+    const ctx = document.getElementById("priceChart").getContext("2d");
+    let chart = null;
 
-      function render(filteredItems) {
-        itemList.innerHTML = "";
-        if (filteredItems.length === 0) {
-          itemList.innerHTML = "<p>該当するアイテムはありません</p>";
-          return;
-        }
-        filteredItems.forEach(item => {
-          const div = document.createElement("div");
-          div.className = "item";
-          div.innerHTML = `<strong>${item.name}</strong>：${item.price} G`;
-          itemList.appendChild(div);
-        });
-      }
-
-      // 初期表示
-      render(items);
-
-      // 検索イベント
-      searchBox.addEventListener("input", () => {
-        const keyword = searchBox.value.trim();
-        const filtered = items.filter(item =>
-          item.name.includes(keyword)
-        );
-        render(filtered);
+    function renderItems(filter = "") {
+      itemList.innerHTML = "";
+      items.filter(item => item.name.includes(filter)).forEach(item => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = item.name;
+        div.onclick = () => fetchAndDraw(item);
+        itemList.appendChild(div);
       });
+    }
+
+    async function fetchAndDraw(item) {
+      // 仮データ。APIと連携時は fetch() に置き換え可能
+      const dummyData = {
+        labels: ["7/1", "7/2", "7/3", "7/4", "7/5"],
+        data: [100, 120, 150, 130, 160]
+      };
+
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: dummyData.labels,
+          datasets: [{
+            label: `${item.name} の相場`,
+            data: dummyData.data,
+            borderColor: "#00aaff",
+            backgroundColor: "rgba(0,170,255,0.1)",
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    searchBox.addEventListener("input", () => {
+      renderItems(searchBox.value.trim());
     });
+
+    renderItems();
   </script>
+
 </body>
 </html>
