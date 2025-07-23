@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>装備シミュレーター</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    .tabs { display: flex; margin-bottom: 1rem; }
+    .tab { padding: 0.5rem 1rem; border: 1px solid #ccc; cursor: pointer; }
+    .tab.active { background: #333; color: white; }
+    .tab-content { display: none; margin-bottom: 1rem; }
+    .tab-content.active { display: block; }
+    select { width: 100%; padding: 0.5rem; margin-top: 0.5rem; }
+    #stats { font-weight: bold; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+
+  <h2>装備選択</h2>
+  <div class="tabs">
+    <div class="tab active" data-tab="weapon">武器</div>
+    <div class="tab" data-tab="armor">防具</div>
+    <div class="tab" data-tab="accessory">アクセ</div>
+  </div>
+
+  <div id="weapon" class="tab-content active">
+    <label>武器を選択：
+      <select id="select-weapon">
+        <option value="none">--</option>
+        <option value="sword_of_light">光の剣</option>
+        <option value="dark_blade">闇の刃</option>
+      </select>
+    </label>
+  </div>
+
+  <div id="armor" class="tab-content">
+    <label>防具を選択：
+      <select id="select-armor">
+        <option value="none">--</option>
+        <option value="dragon_shield">竜の盾</option>
+        <option value="magic_robe">魔法のローブ</option>
+      </select>
+    </label>
+  </div>
+
+  <div id="accessory" class="tab-content">
+    <label>アクセを選択：
+      <select id="select-accessory">
+        <option value="none">--</option>
+        <option value="angel_ring">天使の指輪</option>
+        <option value="power_amulet">力のアミュレット</option>
+      </select>
+    </label>
+  </div>
+
+  <h3>合計ステータス</h3>
+  <div id="stats">攻撃力：0 防御力：0 魔力：0</div>
+
+  <script>
+    const items = {
+      sword_of_light: { attack: 20, defense: 0, magic: 10 },
+      dark_blade:     { attack: 30, defense: 0, magic: 0 },
+      dragon_shield:  { attack: 0, defense: 30, magic: 5 },
+      magic_robe:     { attack: 0, defense: 15, magic: 20 },
+      angel_ring:     { attack: 0, defense: 5,  magic: 25 },
+      power_amulet:   { attack: 10, defense: 5, magic: 5 }
+    };
+
+    function updateStats() {
+      let total = { attack: 0, defense: 0, magic: 0 };
+      ['weapon', 'armor', 'accessory'].forEach(part => {
+        const value = document.getElementById(`select-${part}`).value;
+        if (value !== 'none' && items[value]) {
+          total.attack += items[value].attack;
+          total.defense += items[value].defense;
+          total.magic += items[value].magic;
+        }
+      });
+      document.getElementById("stats").textContent =
+        `攻撃力：${total.attack} 防御力：${total.defense} 魔力：${total.magic}`;
+    }
+
+    document.querySelectorAll("select").forEach(select => {
+      select.addEventListener("change", updateStats);
+    });
+
+    // タブ切り替え処理
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.tab).classList.add("active");
+      });
+    });
+  </script>
+
+</body>
+</html>
