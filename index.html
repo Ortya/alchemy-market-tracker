@@ -1,17 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>装備シミュレーター</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; }
-    .tabs { display: flex; margin-bottom: 1rem; }
-    .tab { padding: 0.5rem 1rem; border: 1px solid #ccc; cursor: pointer; }
-    .tab.active { background: #333; color: white; }
-    .tab-content { display: none; margin-bottom: 1rem; }
-    .tab-content.active { display: block; }
-    select { width: 100%; padding: 0.5rem; margin-top: 0.5rem; }
-    #stats { font-weight: bold; margin-top: 1rem; }
+    :root {
+      --main-color: #333;
+      --accent-color: #6fa;
+      --font-size-base: 16px;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      padding: 1rem;
+      background: #f4f4f4;
+      color: #222;
+    }
+
+    h2, h3 {
+      margin-top: 1.5rem;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 0.7rem;
+      background: #ddd;
+      border-radius: 5px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tab.active {
+      background: var(--main-color);
+      color: white;
+      font-weight: bold;
+    }
+
+    .tab-content {
+      display: none;
+      background: white;
+      padding: 1rem;
+      border-radius: 5px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-top: 0.5rem;
+    }
+
+    #stats {
+      font-weight: bold;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #fff;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        font-size: 14px;
+        padding: 0.8rem;
+      }
+      .tab {
+        flex: 1 1 30%;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -71,9 +146,10 @@
       ['weapon', 'armor', 'accessory'].forEach(part => {
         const value = document.getElementById(`select-${part}`).value;
         if (value !== 'none' && items[value]) {
-          total.attack += items[value].attack;
-          total.defense += items[value].defense;
-          total.magic += items[value].magic;
+          const item = items[value];
+          total.attack += item.attack;
+          total.defense += item.defense;
+          total.magic += item.magic;
         }
       });
       document.getElementById("stats").textContent =
@@ -84,7 +160,6 @@
       select.addEventListener("change", updateStats);
     });
 
-    // タブ切り替え処理
     document.querySelectorAll(".tab").forEach(tab => {
       tab.addEventListener("click", () => {
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
