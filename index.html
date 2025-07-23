@@ -42,8 +42,25 @@
       margin-bottom: 10px;
       padding: 6px;
     }
+    .equipment-display {
+      margin-top: 15px;
+      font-size: 14px;
+      line-height: 1.6;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+      background: #f9f9f9;
+      max-width: 300px;
+    }
+    .equipment-display h3 {
+      margin-top: 0;
+      font-size: 16px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+    }
     .table-wrapper {
       overflow-x: auto;
+      margin-top: 15px;
     }
     table {
       width: 100%;
@@ -65,9 +82,14 @@
       font-weight: bold;
       background-color: #eef;
     }
-    .selected-names {
-      margin-bottom: 8px;
-      font-size: 14px;
+
+    @media (max-width: 600px) {
+      .equipment-display {
+        font-size: 13px;
+      }
+      th, td {
+        font-size: 12px;
+      }
     }
   </style>
 </head>
@@ -79,7 +101,7 @@
     <div class="tab-button active" data-tab="weapons">武器</div>
     <div class="tab-button" data-tab="armor">防具</div>
     <div class="tab-button" data-tab="boots">足具</div>
-    <div class="tab-button" data-tab="accessories">アクセサリー</div>
+    <div class="tab-button" data-tab="accessories">アクセ</div>
   </div>
 
   <div id="weapons" class="tab-content active">
@@ -114,8 +136,14 @@
     </select>
   </div>
 
-  <div class="selected-names" id="selectedNames">
-    装備: なし
+  <div class="equipment-display">
+    <h3>選択中の装備</h3>
+    <div id="selectedNames">
+      ・武器：未選択<br>
+      ・防具：未選択<br>
+      ・足具：未選択<br>
+      ・アクセ：未選択
+    </div>
   </div>
 
   <h2>合計ステータス（%）</h2>
@@ -160,25 +188,27 @@
         { id: 'accessorySelect', label: 'アクセ' }
       ];
       const totals = [0, 0, 0, 0, 0, 0];
-      const selectedNames = [];
+      const nameLines = [];
 
       selects.forEach(sel => {
         const el = document.getElementById(sel.id);
-        if (el.value) {
-          const values = el.value.split(',').map(parseFloat);
+        const selected = el.options[el.selectedIndex];
+        const name = selected && selected.value ? selected.text : '未選択';
+
+        nameLines.push(`・${sel.label}：${name}`);
+
+        if (selected && selected.value) {
+          const values = selected.value.split(',').map(parseFloat);
           values.forEach((v, i) => totals[i] += v);
-          selectedNames.push(`${sel.label}：${el.options[el.selectedIndex].text}`);
         }
       });
 
-      document.getElementById('totalSTR').innerText = totals[0].toFixed(1) + '%';
-      document.getElementById('totalDEX').innerText = totals[1].toFixed(1) + '%';
-      document.getElementById('totalAGI').innerText = totals[2].toFixed(1) + '%';
-      document.getElementById('totalINT').innerText = totals[3].toFixed(1) + '%';
-      document.getElementById('totalVIT').innerText = totals[4].toFixed(1) + '%';
-      document.getElementById('totalLUK').innerText = totals[5].toFixed(1) + '%';
+      document.getElementById('selectedNames').innerHTML = nameLines.join('<br>');
 
-      document.getElementById('selectedNames').innerText = '装備: ' + (selectedNames.length ? selectedNames.join(' / ') : 'なし');
+      const labels = ['STR', 'DEX', 'AGI', 'INT', 'VIT', 'LUK'];
+      labels.forEach((label, i) => {
+        document.getElementById('total' + label).innerText = totals[i].toFixed(1) + '%';
+      });
     }
   </script>
 
