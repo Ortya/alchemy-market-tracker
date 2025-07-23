@@ -1,77 +1,51 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>装備ステータス計算</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>装備ステータス計算UI</title>
   <style>
     body {
       font-family: sans-serif;
       padding: 10px;
-      background: #f7f7f7;
     }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      font-size: 18px;
-      margin-top: 20px;
-      margin-bottom: 5px;
+    .category {
+      margin-bottom: 20px;
     }
     select {
       width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
+      margin-top: 5px;
     }
-    .list-box {
-      background: #f0f0f0;
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #aaa;
       padding: 10px;
       border-radius: 5px;
-      margin-top: 10px;
-    }
-    .total-box {
-      background: #e8f4ff;
-      padding: 10px;
-      border-radius: 5px;
-      margin-top: 15px;
-      font-size: 14px;
+      max-width: 300px;
+      background: #f9f9f9;
     }
     .stat-line {
       display: flex;
       justify-content: space-between;
     }
-    label {
-      font-weight: bold;
-      font-size: 14px;
+    .equipment-list {
+      margin-top: 10px;
+      font-size: 0.9em;
+      max-height: 150px;
+      overflow-y: auto;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>装備選択</h2>
 
-    <label for="weapon">武器</label>
-    <select id="weapon" onchange="updateEquipment()"></select>
+  <h2>装備ステータス計算</h2>
 
-    <label for="head">頭具</label>
-    <select id="head" onchange="updateEquipment()"></select>
-
-    <label for="armor">防具</label>
-    <select id="armor" onchange="updateEquipment()"></select>
-
-    <label for="boots">足具</label>
-    <select id="boots" onchange="updateEquipment()"></select>
-
-    <label for="accessory">アクセサリー</label>
-    <select id="accessory" onchange="updateEquipment()"></select>
-
-    <label for="enhance">強化値（0～10）</label>
-    <select id="enhance" onchange="updateEquipment()">
+  <div class="category" id="weaponSection">
+    <label>武器:</label>
+    <select id="weaponSelect"></select>
+    <label>強化値:</label>
+    <select id="weaponEnhance">
       <option value="0">+0</option>
       <option value="1">+1</option>
       <option value="2">+2</option>
@@ -84,107 +58,123 @@
       <option value="9">+9</option>
       <option value="10">+10</option>
     </select>
+  </div>
 
-    <div class="list-box">
-      <div><strong>選択中の装備:</strong></div>
-      <ul id="selectedList"></ul>
-    </div>
+  <div class="category" id="headSection">
+    <label>頭具:</label>
+    <select id="headSelect"></select>
+    <label>強化値:</label>
+    <select id="headEnhance">
+      <option value="0">+0</option> ... +10
+    </select>
+  </div>
 
-    <div class="total-box" id="totalBox">
-      <strong>合計ステータス:</strong>
-      <div class="stat-line"><span>STR:</span><span id="strTotal">0%</span></div>
-      <div class="stat-line"><span>DEX:</span><span id="dexTotal">0%</span></div>
-      <div class="stat-line"><span>AGI:</span><span id="agiTotal">0%</span></div>
-      <div class="stat-line"><span>INT:</span><span id="intTotal">0%</span></div>
-      <div class="stat-line"><span>VIT:</span><span id="vitTotal">0%</span></div>
-      <div class="stat-line"><span>LUK:</span><span id="lukTotal">0%</span></div>
-    </div>
+  <div class="category" id="bodySection">
+    <label>防具:</label>
+    <select id="bodySelect"></select>
+    <label>強化値:</label>
+    <select id="bodyEnhance">
+      <option value="0">+0</option> ... +10
+    </select>
+  </div>
+
+  <div class="category" id="footSection">
+    <label>足具:</label>
+    <select id="footSelect"></select>
+    <label>強化値:</label>
+    <select id="footEnhance">
+      <option value="0">+0</option> ... +10
+    </select>
+  </div>
+
+  <div class="category" id="accSection">
+    <label>アクセサリー:</label>
+    <select id="accSelect"></select>
+    <label>強化値:</label>
+    <select id="accEnhance">
+      <option value="0">+0</option> ... +10
+    </select>
+  </div>
+
+  <button onclick="calculateStats()">合計ステータスを計算</button>
+
+  <div class="stat-box" id="totalStats">
+    <h4>合計ステータス</h4>
+    <div class="stat-line"><span>STR:</span><span id="statSTR">0</span></div>
+    <div class="stat-line"><span>DEX:</span><span id="statDEX">0</span></div>
+    <div class="stat-line"><span>AGI:</span><span id="statAGI">0</span></div>
+    <div class="stat-line"><span>INT:</span><span id="statINT">0</span></div>
+    <div class="stat-line"><span>VIT:</span><span id="statVIT">0</span></div>
+    <div class="stat-line"><span>LUK:</span><span id="statLUK">0</span></div>
+    <div class="equipment-list" id="equipmentList"></div>
   </div>
 
   <script>
     const equipmentData = {
       weapon: [
-        { name: "アイアンソード", stats: [30, 20, 10, 10, 20, 10] },
-        { name: "ウィザードスタッフ", stats: [5, 10, 10, 50, 15, 10] },
-        { name: "アサシンダガー", stats: [20, 30, 30, 5, 10, 5] },
-        { name: "バトルアックス", stats: [50, 10, 5, 5, 25, 5] },
-        { name: "ドラゴンスレイヤー", stats: [40, 20, 10, 10, 10, 10] },
-        { name: "聖なる杖", stats: [10, 10, 5, 40, 25, 10] }
+        { name: "木の棒", stats: { STR: 30, DEX: 10, AGI: 10, INT: 50, VIT: 0, LUK: 0 } },
+        { name: "鉄の剣", stats: { STR: 50, DEX: 20, AGI: 10, INT: 0, VIT: 20, LUK: 0 } },
       ],
       head: [
-        { name: "革の帽子", stats: [10, 10, 10, 30, 20, 20] },
-        { name: "鉄の兜", stats: [30, 5, 5, 5, 40, 15] },
-        { name: "知恵の帽子", stats: [5, 5, 10, 50, 20, 10] },
-        { name: "暗殺者のフード", stats: [15, 25, 30, 10, 10, 10] }
+        { name: "皮の帽子", stats: { STR: 0, DEX: 20, AGI: 20, INT: 10, VIT: 0, LUK: 10 } },
+        { name: "魔術師の帽子", stats: { STR: 0, DEX: 10, AGI: 10, INT: 40, VIT: 0, LUK: 20 } },
       ],
-      armor: [
-        { name: "くさりかたびら", stats: [30, 10, 5, 5, 40, 10] },
-        { name: "魔法使いのローブ", stats: [5, 5, 5, 60, 15, 10] },
-        { name: "鋼鉄の鎧", stats: [40, 10, 5, 5, 35, 5] },
-        { name: "ドラゴンスキンアーマー", stats: [35, 10, 10, 10, 25, 10] }
+      body: [
+        { name: "くさりかたびら", stats: { STR: 30, DEX: 10, AGI: 5, INT: 0, VIT: 40, LUK: 5 } },
+        { name: "魔法使いのローブ", stats: { STR: 0, DEX: 20, AGI: 10, INT: 50, VIT: 0, LUK: 20 } },
       ],
-      boots: [
-        { name: "レザーブーツ", stats: [10, 10, 40, 10, 20, 10] },
-        { name: "鉄のブーツ", stats: [30, 10, 10, 5, 35, 10] },
-        { name: "神秘のブーツ", stats: [5, 5, 20, 40, 20, 10] },
-        { name: "星空ブーツ", stats: [10, 10, 30, 30, 10, 10] }
+      foot: [
+        { name: "レザーブーツ", stats: { STR: 5, DEX: 10, AGI: 30, INT: 0, VIT: 10, LUK: 0 } },
+        { name: "鋼鉄のブーツ", stats: { STR: 20, DEX: 5, AGI: 10, INT: 0, VIT: 30, LUK: 0 } },
       ],
-      accessory: [
-        { name: "銅の指輪", stats: [20, 10, 10, 10, 30, 20] },
-        { name: "ルビーの指輪", stats: [25, 10, 10, 20, 25, 10] },
-        { name: "神秘のペンダント", stats: [10, 10, 10, 40, 20, 10] },
-        { name: "竜王のブレスレット", stats: [40, 10, 10, 10, 20, 10] }
+      acc: [
+        { name: "銅の指輪", stats: { STR: 10, DEX: 0, AGI: 0, INT: 10, VIT: 0, LUK: 10 } },
+        { name: "魔法のネックレス", stats: { STR: 0, DEX: 10, AGI: 0, INT: 30, VIT: 0, LUK: 10 } },
       ]
     };
 
-    function updateEquipment() {
-      const enhanceLevel = parseInt(document.getElementById("enhance").value);
-      const selected = {
-        weapon: document.getElementById("weapon").value,
-        head: document.getElementById("head").value,
-        armor: document.getElementById("armor").value,
-        boots: document.getElementById("boots").value,
-        accessory: document.getElementById("accessory").value
-      };
-
-      let total = [0, 0, 0, 0, 0, 0];
-      const selectedList = document.getElementById("selectedList");
-      selectedList.innerHTML = "";
-
-      for (let key in selected) {
-        const item = equipmentData[key][selected[key]];
-        const enhancedStats = item.stats.map(v => v + Math.floor((2 ** enhanceLevel) / 6));
-        total = total.map((v, i) => v + enhancedStats[i]);
-        const li = document.createElement("li");
-        li.textContent = item.name;
-        selectedList.appendChild(li);
-      }
-
-      const totalSum = total.reduce((a, b) => a + b, 0);
-      const toPercent = (val) => ((val / totalSum) * 100).toFixed(1) + "%";
-
-      document.getElementById("strTotal").textContent = toPercent(total[0]);
-      document.getElementById("dexTotal").textContent = toPercent(total[1]);
-      document.getElementById("agiTotal").textContent = toPercent(total[2]);
-      document.getElementById("intTotal").textContent = toPercent(total[3]);
-      document.getElementById("vitTotal").textContent = toPercent(total[4]);
-      document.getElementById("lukTotal").textContent = toPercent(total[5]);
-    }
-
-    function populateSelects() {
-      for (let key in equipmentData) {
-        const select = document.getElementById(key);
-        equipmentData[key].forEach((item, index) => {
+    function populateOptions() {
+      for (let category in equipmentData) {
+        const select = document.getElementById(category + "Select");
+        equipmentData[category].forEach((item, i) => {
           const option = document.createElement("option");
-          option.value = index;
+          option.value = i;
           option.textContent = item.name;
           select.appendChild(option);
         });
       }
-      updateEquipment();
     }
 
-    window.onload = populateSelects;
+    function calculateStats() {
+      const total = { STR: 0, DEX: 0, AGI: 0, INT: 0, VIT: 0, LUK: 0 };
+      const list = [];
+
+      for (let category in equipmentData) {
+        const index = document.getElementById(category + "Select").value;
+        const enhance = parseInt(document.getElementById(category + "Enhance").value);
+        if (index === "") continue;
+
+        const item = equipmentData[category][index];
+        list.push(item.name + " (+" + enhance + ")");
+        const baseStats = item.stats;
+
+        for (let stat in baseStats) {
+          const bonus = baseStats[stat] * (enhance * 0.1); // 各強化+1で+10%
+          total[stat] += baseStats[stat] + bonus;
+        }
+      }
+
+      document.getElementById("statSTR").textContent = Math.round(total.STR);
+      document.getElementById("statDEX").textContent = Math.round(total.DEX);
+      document.getElementById("statAGI").textContent = Math.round(total.AGI);
+      document.getElementById("statINT").textContent = Math.round(total.INT);
+      document.getElementById("statVIT").textContent = Math.round(total.VIT);
+      document.getElementById("statLUK").textContent = Math.round(total.LUK);
+      document.getElementById("equipmentList").innerHTML = "<b>装備:</b><br>" + list.join("<br>");
+    }
+
+    populateOptions();
   </script>
+
 </body>
 </html>
