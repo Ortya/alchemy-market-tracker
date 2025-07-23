@@ -1,132 +1,220 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>装備選択ステータス表示</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>装備ステータス計算</title>
   <style>
     body {
-      font-family: sans-serif;
-      margin: 10px;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 1em;
+      background-color: #f9f9f9;
     }
+
     .tabs {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
-      margin-bottom: 10px;
+      margin-bottom: 1em;
+      gap: 8px;
     }
+
     .tab-button {
-      padding: 5px 10px;
-      border: 1px solid #ccc;
-      background: #f0f0f0;
-      cursor: pointer;
+      flex: 1 1 120px;
+      padding: 0.5em;
+      background: #ccc;
+      border: none;
       border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
     }
+
     .tab-button.active {
-      background: #007bff;
-      color: #fff;
+      background: #888;
+      color: white;
     }
-    .item-list, .selected-list {
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1em;
+    }
+
+    .items-table th,
+    .items-table td {
+      border: 1px solid #ddd;
+      padding: 0.5em;
+      font-size: 0.9em;
+      text-align: center;
+    }
+
+    .items-table th {
+      background: #eee;
+    }
+
+    .selected-items {
+      margin-top: 1em;
       max-height: 200px;
       overflow-y: auto;
       border: 1px solid #ccc;
-      padding: 5px;
-      margin-bottom: 10px;
-      background: #fafafa;
+      padding: 0.5em;
+      border-radius: 5px;
+      background: #fff;
     }
-    .selected-list {
-      min-height: 100px;
-    }
-    .item {
-      padding: 3px;
-      border-bottom: 1px solid #ddd;
-      cursor: pointer;
-    }
+
     .totals {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
-      justify-content: space-between;
+      gap: 0.5em;
+      margin-top: 1em;
     }
-    .total-box {
-      flex: 1 1 30%;
-      background: #e0f7fa;
+
+    .totals div {
+      flex: 1 1 80px;
       text-align: center;
-      font-size: 12px;
+      background: #eee;
       padding: 5px;
       border-radius: 5px;
+      font-size: clamp(12px, 2.5vw, 16px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .label {
-      font-weight: bold;
-      font-size: 12px;
+
+    @media (max-width: 600px) {
+      .tab-button {
+        flex: 1 1 45%;
+      }
+
+      .totals div {
+        flex: 1 1 40%;
+        font-size: clamp(11px, 3vw, 14px);
+      }
+
+      .items-table {
+        font-size: 0.75em;
+      }
     }
   </style>
 </head>
 <body>
 
-<h2>装備ステータス表示</h2>
+<h2>装備ステータス計算</h2>
 
-<div class="tabs">
-  <button class="tab-button active" onclick="showTab('weapon')">武器</button>
-  <button class="tab-button" onclick="showTab('armor')">防具</button>
-  <button class="tab-button" onclick="showTab('boots')">足具</button>
-  <button class="tab-button" onclick="showTab('accessory')">アクセ</button>
-</div>
+<div class="tabs" id="tabs"></div>
+<table class="items-table" id="itemTable"></table>
 
-<div id="item-container" class="item-list"></div>
-
-<h3>選んだ装備</h3>
-<div id="selected-items" class="selected-list"></div>
+<h3>選択した装備</h3>
+<div class="selected-items" id="selectedItems"></div>
 
 <h3>合計ステータス</h3>
 <div class="totals" id="totals">
-  <div class="total-box"><span class="label">STR</span><div id="total-str">0%</div></div>
-  <div class="total-box"><span class="label">DEX</span><div id="total-dex">0%</div></div>
-  <div class="total-box"><span class="label">AGI</span><div id="total-agi">0%</div></div>
-  <div class="total-box"><span class="label">INT</span><div id="total-int">0%</div></div>
-  <div class="total-box"><span class="label">VIT</span><div id="total-vit">0%</div></div>
-  <div class="total-box"><span class="label">LUK</span><div id="total-luk">0%</div></div>
+  <div id="strTotal">STR: 0%</div>
+  <div id="dexTotal">DEX: 0%</div>
+  <div id="agiTotal">AGI: 0%</div>
+  <div id="intTotal">INT: 0%</div>
+  <div id="vitTotal">VIT: 0%</div>
+  <div id="lukTotal">LUK: 0%</div>
 </div>
 
 <script>
 const data = {
-  weapon: [
-    { name: "木の杖", rank: "F", STR: 0, DEX: 0, AGI: 0, INT: 100, VIT: 0, LUK: 0 },
-    { name: "アイアンブレード", rank: "F", STR: 50, DEX: 25, AGI: 25, INT: 0, VIT: 0, LUK: 0 },
-    { name: "炎のロッド", rank: "E", STR: 0, DEX: 0, AGI: 10, INT: 90, VIT: 0, LUK: 0 },
-    { name: "鋼鉄の斧", rank: "E", STR: 80, DEX: 10, AGI: 10, INT: 0, VIT: 0, LUK: 0 },
-    { name: "氷結の杖", rank: "D", STR: 0, DEX: 0, AGI: 15, INT: 85, VIT: 0, LUK: 0 },
-    { name: "雷鳴剣", rank: "D", STR: 60, DEX: 20, AGI: 20, INT: 0, VIT: 0, LUK: 0 },
-    { name: "戦士の大剣", rank: "C", STR: 70, DEX: 15, AGI: 15, INT: 0, VIT: 0, LUK: 0 },
-    { name: "賢者の杖", rank: "C", STR: 0, DEX: 0, AGI: 20, INT: 80, VIT: 0, LUK: 0 },
-    { name: "ドラゴンスレイヤー", rank: "B", STR: 85, DEX: 5, AGI: 10, INT: 0, VIT: 0, LUK: 0 },
-    { name: "大魔導の杖", rank: "B", STR: 0, DEX: 0, AGI: 10, INT: 90, VIT: 0, LUK: 0 },
-    { name: "聖剣エクスカリバー", rank: "A", STR: 70, DEX: 10, AGI: 10, INT: 10, VIT: 0, LUK: 0 },
-    { name: "星屑のワンド", rank: "A", STR: 0, DEX: 0, AGI: 5, INT: 95, VIT: 0, LUK: 0 },
-    { name: "破滅の剣", rank: "S", STR: 100, DEX: 0, AGI: 0, INT: 0, VIT: 0, LUK: 0 },
-    { name: "創星の杖", rank: "S", STR: 0, DEX: 0, AGI: 0, INT: 100, VIT: 0, LUK: 0 }
+  "武器": [
+    {name:"アイアンソード",rank:"F",str:40,dex:20,agi:0,int:20,vit:20,luk:0,tendency:"物理"},
+    {name:"マジックワンド",rank:"F",str:0,dex:20,agi:0,int:40,vit:20,luk:20,tendency:"魔法"}
   ],
-  armor: [
-    { name: "くさりかたびら", rank: "F", STR: 0, DEX: 0, AGI: 0, INT: 0, VIT: 100, LUK: 0 },
-    { name: "布のローブ", rank: "F", STR: 0, DEX: 0, AGI: 40, INT: 60, VIT: 0, LUK: 0 },
-    { name: "鋼鉄の鎧", rank: "E", STR: 0, DEX: 16.7, AGI: 0, INT: 0, VIT: 83.3, LUK: 0 },
-    { name: "魔法使いのローブ", rank: "E", STR: 0, DEX: 16.7, AGI: 41.7, INT: 41.7, VIT: 0, LUK: 0 },
-    { name: "ドラゴンスキンアーマー", rank: "D", STR: 30, DEX: 0, AGI: 0, INT: 0, VIT: 70, LUK: 0 },
-    { name: "エルフのシルクローブ", rank: "D", STR: 0, DEX: 0, AGI: 20, INT: 40, VIT: 40, LUK: 0 },
-    { name: "守護者の鎧", rank: "C", STR: 16.7, DEX: 16.7, AGI: 0, INT: 0, VIT: 66.7, LUK: 0 },
-    { name: "賢者のローブ", rank: "C", STR: 0, DEX: 0, AGI: 20, INT: 40, VIT: 40, LUK: 0 },
-    { name: "デーモンプレートアーマー", rank: "B", STR: 50, DEX: 0, AGI: 0, INT: 0, VIT: 50, LUK: 0 },
-    { name: "幻影のローブ", rank: "B", STR: 0, DEX: 0, AGI: 10, INT: 45, VIT: 45, LUK: 0 },
-    { name: "光の鎧", rank: "A", STR: 8, DEX: 8, AGI: 4, INT: 0, VIT: 56, LUK: 24 },
-    { name: "大魔導師のローブ", rank: "A", STR: 0, DEX: 0, AGI: 4, INT: 48, VIT: 48, LUK: 0 },
-    { name: "厄災のヴェール", rank: "S", STR: 0, DEX: 0, AGI: 12.5, INT: 50, VIT: 37.5, LUK: 0 },
-    { name: "煉獄の炎鎧", rank: "S", STR: 25, DEX: 12.5, AGI: 6.25, INT: 0, VIT: 6.25, LUK: 50 }
+  "足具": [
+    {name:"レザーブーツ",rank:"F",str:20,dex:20,agi:40,int:0,vit:20,luk:0,tendency:"物理"},
+    {name:"布製のブーツ",rank:"F",str:0,dex:0,agi:40,int:20,vit:20,luk:20,tendency:"魔法"}
   ],
-  boots: [ /* 足具データ（省略表示中） */ ],
-  accessory: [ /* アクセサリーデータ（省略表示中） */ ]
+  "アクセサリー": [
+    {name:"銅の指輪",rank:"F",str:20,dex:20,agi:20,int:20,vit:20,luk:0,tendency:"平ら"},
+    {name:"銀のペンダント",rank:"E",str:16.7,dex:16.7,agi:25,int:8.3,vit:25,luk:8.3,tendency:"平ら"}
+  ]
 };
 
-// 以下の JavaScript 部分でリストの生成、装備選択、合計計算などを処理します。
+let selected = {
+  "武器": null,
+  "足具": null,
+  "アクセサリー": null
+};
+
+const tabsEl = document.getElementById("tabs");
+const itemTable = document.getElementById("itemTable");
+const selectedItemsEl = document.getElementById("selectedItems");
+
+Object.keys(data).forEach(cat => {
+  const btn = document.createElement("button");
+  btn.textContent = cat;
+  btn.className = "tab-button";
+  btn.onclick = () => renderTable(cat, btn);
+  tabsEl.appendChild(btn);
+});
+
+function renderTable(category, btn) {
+  document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  const items = data[category];
+  itemTable.innerHTML = `
+    <tr>
+      <th>アイテム名</th><th>ランク</th><th>STR</th><th>DEX</th><th>AGI</th>
+      <th>INT</th><th>VIT</th><th>LUK</th><th>傾向</th><th>選択</th>
+    </tr>
+  `;
+
+  items.forEach(item => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.name}</td><td>${item.rank}</td>
+      <td>${item.str}%</td><td>${item.dex}%</td><td>${item.agi}%</td>
+      <td>${item.int}%</td><td>${item.vit}%</td><td>${item.luk}%</td>
+      <td>${item.tendency}</td>
+      <td><button onclick='selectItem("${category}", ${JSON.stringify(item)})'>選択</button></td>
+    `;
+    itemTable.appendChild(row);
+  });
+}
+
+function selectItem(category, item) {
+  selected[category] = item;
+  updateSelected();
+  updateTotals();
+}
+
+function updateSelected() {
+  selectedItemsEl.innerHTML = "";
+  for (const [cat, item] of Object.entries(selected)) {
+    const div = document.createElement("div");
+    div.textContent = item ? `[${cat}] ${item.name}` : `[${cat}] 未選択`;
+    selectedItemsEl.appendChild(div);
+  }
+}
+
+function updateTotals() {
+  let totals = {str:0,dex:0,agi:0,int:0,vit:0,luk:0};
+  Object.values(selected).forEach(item => {
+    if (item) {
+      totals.str += item.str;
+      totals.dex += item.dex;
+      totals.agi += item.agi;
+      totals.int += item.int;
+      totals.vit += item.vit;
+      totals.luk += item.luk;
+    }
+  });
+
+  document.getElementById("strTotal").textContent = `STR: ${totals.str.toFixed(1)}%`;
+  document.getElementById("dexTotal").textContent = `DEX: ${totals.dex.toFixed(1)}%`;
+  document.getElementById("agiTotal").textContent = `AGI: ${totals.agi.toFixed(1)}%`;
+  document.getElementById("intTotal").textContent = `INT: ${totals.int.toFixed(1)}%`;
+  document.getElementById("vitTotal").textContent = `VIT: ${totals.vit.toFixed(1)}%`;
+  document.getElementById("lukTotal").textContent = `LUK: ${totals.luk.toFixed(1)}%`;
+}
+
+// 初期表示
+renderTable("武器", document.querySelector(".tab-button"));
+updateSelected();
+updateTotals();
 </script>
 
 </body>
