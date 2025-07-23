@@ -2,209 +2,189 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>装備ステータス計算UI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>装備ステータス計算</title>
   <style>
     body {
       font-family: sans-serif;
       padding: 10px;
-      background: #f9f9f9;
+      background: #f7f7f7;
     }
-
-    h1 {
-      font-size: 20px;
-      text-align: center;
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
-    select, input {
-      width: 100%;
-      margin: 5px 0;
-      padding: 5px;
-      font-size: 14px;
-    }
-
-    .equipment-slot {
-      margin-bottom: 15px;
-    }
-
-    .equipment-slot label {
-      font-weight: bold;
-    }
-
-    .equipment-list {
+    h2 {
+      font-size: 18px;
       margin-top: 20px;
-    }
-
-    .equipment-item {
-      border: 1px solid #ccc;
-      padding: 8px;
       margin-bottom: 5px;
-      background: white;
-      font-size: 14px;
     }
-
-    .stat-summary {
-      background: #eee;
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+    }
+    .list-box {
+      background: #f0f0f0;
       padding: 10px;
-      margin-top: 20px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .total-box {
+      background: #e8f4ff;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 15px;
       font-size: 14px;
     }
-
-    .stat-box {
+    .stat-line {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
+      justify-content: space-between;
     }
-
-    .stat {
-      width: 48%;
-      margin: 5px 0;
+    label {
+      font-weight: bold;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>装備選択</h2>
 
-<h1>装備ステータス計算UI</h1>
+    <label for="weapon">武器</label>
+    <select id="weapon" onchange="updateEquipment()"></select>
 
-<div class="equipment-slot">
-  <label>武器</label>
-  <select id="weapon"></select>
-  <select id="weapon-level"></select>
-</div>
+    <label for="head">頭具</label>
+    <select id="head" onchange="updateEquipment()"></select>
 
-<div class="equipment-slot">
-  <label>頭具</label>
-  <select id="head"></select>
-  <select id="head-level"></select>
-</div>
+    <label for="armor">防具</label>
+    <select id="armor" onchange="updateEquipment()"></select>
 
-<div class="equipment-slot">
-  <label>防具</label>
-  <select id="armor"></select>
-  <select id="armor-level"></select>
-</div>
+    <label for="boots">足具</label>
+    <select id="boots" onchange="updateEquipment()"></select>
 
-<div class="equipment-slot">
-  <label>足具</label>
-  <select id="boots"></select>
-  <select id="boots-level"></select>
-</div>
+    <label for="accessory">アクセサリー</label>
+    <select id="accessory" onchange="updateEquipment()"></select>
 
-<div class="equipment-slot">
-  <label>アクセサリー</label>
-  <select id="accessory"></select>
-  <select id="accessory-level"></select>
-</div>
+    <label for="enhance">強化値（0～10）</label>
+    <select id="enhance" onchange="updateEquipment()">
+      <option value="0">+0</option>
+      <option value="1">+1</option>
+      <option value="2">+2</option>
+      <option value="3">+3</option>
+      <option value="4">+4</option>
+      <option value="5">+5</option>
+      <option value="6">+6</option>
+      <option value="7">+7</option>
+      <option value="8">+8</option>
+      <option value="9">+9</option>
+      <option value="10">+10</option>
+    </select>
 
-<div class="equipment-list" id="selectedItems"></div>
+    <div class="list-box">
+      <div><strong>選択中の装備:</strong></div>
+      <ul id="selectedList"></ul>
+    </div>
 
-<div class="stat-summary">
-  <strong>合計ステータス</strong>
-  <div class="stat-box" id="totalStats"></div>
-</div>
+    <div class="total-box" id="totalBox">
+      <strong>合計ステータス:</strong>
+      <div class="stat-line"><span>STR:</span><span id="strTotal">0%</span></div>
+      <div class="stat-line"><span>DEX:</span><span id="dexTotal">0%</span></div>
+      <div class="stat-line"><span>AGI:</span><span id="agiTotal">0%</span></div>
+      <div class="stat-line"><span>INT:</span><span id="intTotal">0%</span></div>
+      <div class="stat-line"><span>VIT:</span><span id="vitTotal">0%</span></div>
+      <div class="stat-line"><span>LUK:</span><span id="lukTotal">0%</span></div>
+    </div>
+  </div>
 
-<script>
-  const categories = ['weapon', 'head', 'armor', 'boots', 'accessory'];
-  const equipmentData = {
-    weapon: [],
-    head: [],
-    armor: [
-      { name: 'くさりかたびら', rarity: 'F', power: [11,24,45,79,141,254,470,888,1704,3309,6482,12775] },
-      { name: '布のローブ', rarity: 'F', power: [11,24,44,79,141,254,470,888,1703,3308,6481] },
-      { name: '鋼鉄の鎧', rarity: 'E', power: [18,42,74,123,204,341,591,1056,1939,3640,6955] },
-      { name: '魔法使いのローブ', rarity: 'E', power: [18,41,74,122,204,341,590,1056,1939,3640,6955] },
-      { name: 'ドラゴンスキンアーマー', rarity: 'D', power: [26,62,108,175,276,443,731,1249,2207,4020] },
-      { name: 'エルフのシルクローブ', rarity: 'D', power: [26,62,109,175,276,442,731,1248,2208,4019] },
-      { name: '守護者の鎧', rarity: 'C', power: [36,86,151,237,367,567,903,1489,2544,4494] },
-      { name: '賢者のローブ', rarity: 'C', power: [36,87,151,238,366,569,904,1490,2544,4494] },
-      { name: 'デーモンプレートアーマー', rarity: 'B', power: [46,112,194,302,458,694,1078,1730,2880] },
-      { name: '幻影のローブ', rarity: 'B', power: [46,112,193,301,458,694,1079,1730,2880,4967] },
-      { name: '光の鎧', rarity: 'A', power: [56,137,236,364,547,820,1250,1971,3215] },
-      { name: '大魔導師のローブ', rarity: 'A', power: [56,137,236,364,548,821,1252,1972,3217,5442] },
-      { name: '厄災のヴェール', rarity: 'S', power: [86,212,363,557,819,1197,1773,2693] },
-      { name: '煉獄の炎鎧', rarity: 'S', power: [86,211,363,555,819,1195,1771,2692] },
-    ],
-    boots: [
-      { name: 'レザーブーツ', rarity: 'F', power: [11,23,44,78,141,253,469,888,1702,3307,6480] },
-      { name: '布製のブーツ', rarity: 'F', power: [11,23,44,78,141,253,469,888,1702,3307,6480] },
-      { name: '鉄のブーツ', rarity: 'E', power: [18,41,73,122,204,341,590,1056,1938,3639,6954] },
-      { name: 'エナメルブーツ', rarity: 'E', power: [18,41,73,122,204,341,590,1056,1938,3639,6954] },
-      { name: '鋼鉄のブーツ', rarity: 'D', power: [28,67,116,186,294,468,764,1297,2274,4113,7630] },
-      { name: 'クロコダイルブーツ', rarity: 'D', power: [28,67,116,186,294,468,764,1297,2274,4113,7630] },
-      { name: '神秘のブーツ', rarity: 'C', power: [36,87,151,238,367,568,904,1489,2543,4493,8171] },
-      { name: '砂漠のブーツ', rarity: 'C', power: [36,87,151,238,367,568,904,1489,2543,4493,8171] },
-      { name: 'フォレストブーツ', rarity: 'B', power: [46,112,192,302,457,694,1078,1729,2878,4967] },
-      { name: '竜鱗のブーツ', rarity: 'B', power: [46,112,192,302,457,694,1078,1729,2878,4967] },
-      { name: '星空ブーツ', rarity: 'A', power: [56,137,236,366,547,819,1253,1970,3217] },
-      { name: 'シャドウブーツ', rarity: 'A', power: [56,137,236,366,547,819,1253,1970,3217] },
-      { name: '雷鳴のグリーブス', rarity: 'S', power: [86,212,363,556,819,1196,1772,2692] },
-    ],
-    accessory: [
-      { name: '銅の指輪', rarity: 'F', power: [11,22,44,78,141,252,469,888,1701,3307,6479] },
-      { name: '布製のベルト', rarity: 'F', power: [11,23,44,78,141,253,469,888,1702,3307,6480] },
-      { name: '銀のペンダント', rarity: 'E', power: [18,40,72,122,204,340,590,1056,1936,3638] },
-      { name: '鋼鉄の腕輪', rarity: 'E', power: [18,40,72,122,204,340,590,1056,1936,3638,6952] },
-      { name: 'ルビーの指輪', rarity: 'D', power: [26,60,107,172,276,440,728,1248,2206,4018] },
-      { name: '魔法のネックレス', rarity: 'D', power: [26,61,108,173,276,441,729,1248,2205,4017,7493] },
-      { name: '竜の牙', rarity: 'C', power: [36,85,148,236,366,567,902,1488,2542,4493] },
-      { name: '宝石のブローチ', rarity: 'C', power: [36,87,149,237,366,567,903,1488,2541,4491] },
-      { name: '伝説のメダリオン', rarity: 'B', power: [46,112,194,302,456,692,1078,1728,2880,4966,8848] },
-      { name: '星屑のリング', rarity: 'B', power: [46,110,192,300,456,692,1076,1728,2880,4968] },
-      { name: '神秘のペンダント', rarity: 'A', power: [56,136,234,362,546,816,1248,1968,3216] },
-      { name: '太陽のアミュレット', rarity: 'A', power: [56,135,234,364,546,819,1250,1968,3214,5440] },
-      { name: '竜王のブレスレット', rarity: 'S', power: [86,210,360,554,816,1194,1770,2692,4224] },
-      { name: 'ミスティック・オーブ', rarity: 'S', power: [86,212,362,556,818,1196,1772,2690,4224] },
-    ],
-  };
+  <script>
+    const equipmentData = {
+      weapon: [
+        { name: "アイアンソード", stats: [30, 20, 10, 10, 20, 10] },
+        { name: "ウィザードスタッフ", stats: [5, 10, 10, 50, 15, 10] },
+        { name: "アサシンダガー", stats: [20, 30, 30, 5, 10, 5] },
+        { name: "バトルアックス", stats: [50, 10, 5, 5, 25, 5] },
+        { name: "ドラゴンスレイヤー", stats: [40, 20, 10, 10, 10, 10] },
+        { name: "聖なる杖", stats: [10, 10, 5, 40, 25, 10] }
+      ],
+      head: [
+        { name: "革の帽子", stats: [10, 10, 10, 30, 20, 20] },
+        { name: "鉄の兜", stats: [30, 5, 5, 5, 40, 15] },
+        { name: "知恵の帽子", stats: [5, 5, 10, 50, 20, 10] },
+        { name: "暗殺者のフード", stats: [15, 25, 30, 10, 10, 10] }
+      ],
+      armor: [
+        { name: "くさりかたびら", stats: [30, 10, 5, 5, 40, 10] },
+        { name: "魔法使いのローブ", stats: [5, 5, 5, 60, 15, 10] },
+        { name: "鋼鉄の鎧", stats: [40, 10, 5, 5, 35, 5] },
+        { name: "ドラゴンスキンアーマー", stats: [35, 10, 10, 10, 25, 10] }
+      ],
+      boots: [
+        { name: "レザーブーツ", stats: [10, 10, 40, 10, 20, 10] },
+        { name: "鉄のブーツ", stats: [30, 10, 10, 5, 35, 10] },
+        { name: "神秘のブーツ", stats: [5, 5, 20, 40, 20, 10] },
+        { name: "星空ブーツ", stats: [10, 10, 30, 30, 10, 10] }
+      ],
+      accessory: [
+        { name: "銅の指輪", stats: [20, 10, 10, 10, 30, 20] },
+        { name: "ルビーの指輪", stats: [25, 10, 10, 20, 25, 10] },
+        { name: "神秘のペンダント", stats: [10, 10, 10, 40, 20, 10] },
+        { name: "竜王のブレスレット", stats: [40, 10, 10, 10, 20, 10] }
+      ]
+    };
 
-  function createOption(item) {
-    return `<option value="${item.name}">${item.name}（${item.rarity}）</option>`;
-  }
+    function updateEquipment() {
+      const enhanceLevel = parseInt(document.getElementById("enhance").value);
+      const selected = {
+        weapon: document.getElementById("weapon").value,
+        head: document.getElementById("head").value,
+        armor: document.getElementById("armor").value,
+        boots: document.getElementById("boots").value,
+        accessory: document.getElementById("accessory").value
+      };
 
-  function updateSelect(id, data) {
-    const select = document.getElementById(id);
-    select.innerHTML = '<option value="">-- 選択 --</option>' + data.map(createOption).join('');
-  }
+      let total = [0, 0, 0, 0, 0, 0];
+      const selectedList = document.getElementById("selectedList");
+      selectedList.innerHTML = "";
 
-  function createLevelSelect(id) {
-    const select = document.getElementById(id);
-    for (let i = 0; i <= 10; i++) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.text = `+${i}`;
-      select.appendChild(opt);
+      for (let key in selected) {
+        const item = equipmentData[key][selected[key]];
+        const enhancedStats = item.stats.map(v => v + Math.floor((2 ** enhanceLevel) / 6));
+        total = total.map((v, i) => v + enhancedStats[i]);
+        const li = document.createElement("li");
+        li.textContent = item.name;
+        selectedList.appendChild(li);
+      }
+
+      const totalSum = total.reduce((a, b) => a + b, 0);
+      const toPercent = (val) => ((val / totalSum) * 100).toFixed(1) + "%";
+
+      document.getElementById("strTotal").textContent = toPercent(total[0]);
+      document.getElementById("dexTotal").textContent = toPercent(total[1]);
+      document.getElementById("agiTotal").textContent = toPercent(total[2]);
+      document.getElementById("intTotal").textContent = toPercent(total[3]);
+      document.getElementById("vitTotal").textContent = toPercent(total[4]);
+      document.getElementById("lukTotal").textContent = toPercent(total[5]);
     }
-  }
 
-  function updateDisplay() {
-    const selected = [];
-    let total = 0;
-    categories.forEach(cat => {
-      const itemName = document.getElementById(cat).value;
-      const itemLevel = parseInt(document.getElementById(cat + '-level').value);
-      if (!itemName || isNaN(itemLevel)) return;
+    function populateSelects() {
+      for (let key in equipmentData) {
+        const select = document.getElementById(key);
+        equipmentData[key].forEach((item, index) => {
+          const option = document.createElement("option");
+          option.value = index;
+          option.textContent = item.name;
+          select.appendChild(option);
+        });
+      }
+      updateEquipment();
+    }
 
-      const item = equipmentData[cat].find(i => i.name === itemName);
-      if (!item) return;
-
-      const power = item.power[itemLevel] || item.power[item.power.length - 1];
-      selected.push(`<div class="equipment-item">${cat.toUpperCase()}：${item.name}（+${itemLevel}） → 戦闘力 ${power}</div>`);
-      total += power;
-    });
-
-    document.getElementById('selectedItems').innerHTML = selected.join('');
-    document.getElementById('totalStats').innerHTML = `<div class="stat">戦闘力：<strong>${total}</strong></div>`;
-  }
-
-  window.onload = () => {
-    categories.forEach(cat => {
-      updateSelect(cat, equipmentData[cat]);
-      createLevelSelect(cat + '-level');
-      document.getElementById(cat).addEventListener('change', updateDisplay);
-      document.getElementById(cat + '-level').addEventListener('change', updateDisplay);
-    });
-  };
-</script>
-
+    window.onload = populateSelects;
+  </script>
 </body>
 </html>
