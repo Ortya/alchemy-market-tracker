@@ -18,10 +18,25 @@
     .tab-button.active { background: #999; color: #fff; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding: 8px; border: 1px solid #ddd; text-align: center; }
-    .total-row { background: #f0f0f0; font-weight: bold; }
     select { width: 100%; padding: 6px; margin: 5px 0; }
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    .total-row {
+      background: #f0f0f0;
+      font-weight: bold;
+    }
     @media (max-width: 600px) {
       .tabs { flex-direction: column; }
     }
@@ -31,6 +46,7 @@
 
 <h1>装備ステータス合計ツール</h1>
 
+<!-- ▼ タブ -->
 <div class="tabs">
   <div class="tab-button active" data-tab="weapon">武器</div>
   <div class="tab-button" data-tab="armor">防具</div>
@@ -38,7 +54,7 @@
   <div class="tab-button" data-tab="accessory">アクセサリー</div>
 </div>
 
-<!-- ▼ 各カテゴリの選択肢 ▼ -->
+<!-- ▼ 各カテゴリ選択 -->
 <div id="weapon" class="tab-content active">
   <label>武器を選択：</label>
   <select id="weaponSelect">
@@ -75,23 +91,25 @@
   </select>
 </div>
 
-<!-- ▼ 合計ステータス表 ▼ -->
-<h2>合計ステータス</h2>
-<table>
-  <thead>
-    <tr><th>STR</th><th>DEX</th><th>AGI</th><th>INT</th><th>VIT</th><th>LUK</th></tr>
-  </thead>
-  <tbody>
-    <tr class="total-row">
-      <td id="totalSTR">0</td>
-      <td id="totalDEX">0</td>
-      <td id="totalAGI">0</td>
-      <td id="totalINT">0</td>
-      <td id="totalVIT">0</td>
-      <td id="totalLUK">0</td>
-    </tr>
-  </tbody>
-</table>
+<!-- ▼ 合計値 表示 -->
+<h2>合計ステータス（%）</h2>
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr><th>STR</th><th>DEX</th><th>AGI</th><th>INT</th><th>VIT</th><th>LUK</th></tr>
+    </thead>
+    <tbody>
+      <tr class="total-row">
+        <td id="totalSTR">0%</td>
+        <td id="totalDEX">0%</td>
+        <td id="totalAGI">0%</td>
+        <td id="totalINT">0%</td>
+        <td id="totalVIT">0%</td>
+        <td id="totalLUK">0%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 <script>
   const tabs = document.querySelectorAll('.tab-button');
@@ -125,7 +143,7 @@
     });
 
     statFields.forEach(stat => {
-      document.getElementById('total' + stat).textContent = totals[stat].toFixed(2);
+      document.getElementById('total' + stat).textContent = totals[stat].toFixed(2) + "%";
     });
   }
 </script>
