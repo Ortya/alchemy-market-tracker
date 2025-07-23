@@ -3,219 +3,220 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>装備ステータス計算</title>
+  <title>装備ステータス計算機</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 1em;
-      background-color: #f9f9f9;
+      font-family: sans-serif;
+      padding: 10px;
     }
 
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      margin-bottom: 1em;
-      gap: 8px;
+    .category {
+      margin-bottom: 15px;
     }
 
-    .tab-button {
-      flex: 1 1 120px;
-      padding: 0.5em;
-      background: #ccc;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-align: center;
+    label {
+      font-weight: bold;
     }
 
-    .tab-button.active {
-      background: #888;
-      color: white;
-    }
-
-    .items-table {
+    select {
       width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 1em;
+      padding: 4px;
+      margin-top: 4px;
     }
 
-    .items-table th,
-    .items-table td {
-      border: 1px solid #ddd;
-      padding: 0.5em;
-      font-size: 0.9em;
-      text-align: center;
+    .selected-list {
+      margin-top: 20px;
     }
 
-    .items-table th {
-      background: #eee;
+    .selected-list ul {
+      list-style-type: none;
+      padding-left: 0;
+      font-size: 14px;
     }
 
-    .selected-items {
-      margin-top: 1em;
-      max-height: 200px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 0.5em;
-      border-radius: 5px;
-      background: #fff;
-    }
-
-    .totals {
+    .status-box {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5em;
-      margin-top: 1em;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 14px;
     }
 
-    .totals div {
-      flex: 1 1 80px;
-      text-align: center;
-      background: #eee;
+    .status {
+      width: 48%;
       padding: 5px;
-      border-radius: 5px;
-      font-size: clamp(12px, 2.5vw, 16px);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      margin-bottom: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: center;
+      box-sizing: border-box;
     }
 
-    @media (max-width: 600px) {
-      .tab-button {
-        flex: 1 1 45%;
-      }
-
-      .totals div {
-        flex: 1 1 40%;
-        font-size: clamp(11px, 3vw, 14px);
-      }
-
-      .items-table {
-        font-size: 0.75em;
+    @media (min-width: 600px) {
+      .status {
+        width: 32%;
       }
     }
   </style>
 </head>
 <body>
 
-<h2>装備ステータス計算</h2>
+  <h2>装備ステータス計算機</h2>
 
-<div class="tabs" id="tabs"></div>
-<table class="items-table" id="itemTable"></table>
+  <!-- 装備カテゴリ選択 -->
+  <div class="category">
+    <label for="weapon">武器</label>
+    <select id="weapon" onchange="updateSelection()">
+      <option value="">-- 選択してください --</option>
+      <option value="5,15,10,0,70,0">古代の剣</option>
+      <option value="10,20,20,0,50,0">ブロードソード</option>
+      <option value="0,0,15,35,50,0">精霊の杖</option>
+      <option value="0,10,25,30,35,0">ウィザードロッド</option>
+      <option value="25,10,15,0,50,0">フレイムブレード</option>
+      <option value="0,0,10,40,50,0">アイスワンド</option>
+      <option value="40,20,10,0,30,0">雷鳴の剣</option>
+      <option value="0,0,10,40,50,0">大魔導の杖</option>
+      <option value="50,25,10,0,15,0">戦神の大剣</option>
+      <option value="0,0,5,45,50,0">星屑のワンド</option>
+      <option value="25,10,10,0,50,5">煉獄の大剣</option>
+      <option value="0,0,5,50,45,0">終焉のロッド</option>
+    </select>
+  </div>
 
-<h3>選択した装備</h3>
-<div class="selected-items" id="selectedItems"></div>
+  <div class="category">
+    <label for="head">頭具</label>
+    <select id="head" onchange="updateSelection()">
+      <option value="">-- 選択してください --</option>
+      <option value="0,0,10,40,50,0">革の帽子</option>
+      <option value="0,0,20,40,40,0">学者の帽子</option>
+      <option value="16.7,16.7,0,0,66.7,0">鉄兜</option>
+      <option value="0,0,20,40,40,0">魔術師の帽子</option>
+      <option value="20,0,0,0,80,0">ドラゴンヘルム</option>
+      <option value="0,0,20,40,40,0">妖精の花冠</option>
+      <option value="16.7,16.7,0,0,66.7,0">騎士の兜</option>
+      <option value="0,0,20,40,40,0">賢者の帽子</option>
+      <option value="40,0,0,0,60,0">デーモンヘルム</option>
+      <option value="0,0,15,45,40,0">幻影のティアラ</option>
+      <option value="8,8,4,0,56,24">光の王冠</option>
+      <option value="0,0,4,48,48,0">大賢者の帽子</option>
+    </select>
+  </div>
 
-<h3>合計ステータス</h3>
-<div class="totals" id="totals">
-  <div id="strTotal">STR: 0%</div>
-  <div id="dexTotal">DEX: 0%</div>
-  <div id="agiTotal">AGI: 0%</div>
-  <div id="intTotal">INT: 0%</div>
-  <div id="vitTotal">VIT: 0%</div>
-  <div id="lukTotal">LUK: 0%</div>
-</div>
+  <div class="category">
+    <label for="armor">防具</label>
+    <select id="armor" onchange="updateSelection()">
+      <option value="">-- 選択してください --</option>
+      <option value="0,0,0,0,100,0">くさりかたびら</option>
+      <option value="0,0,0,40,60,0">布のローブ</option>
+      <option value="0,16.7,0,0,83.3,0">鋼鉄の鎧</option>
+      <option value="0,16.7,41.7,41.7,0,0">魔法使いのローブ</option>
+      <option value="30,0,0,0,70,0">ドラゴンスキンアーマー</option>
+      <option value="0,0,20,40,40,0">エルフのシルクローブ</option>
+      <option value="16.7,16.7,0,0,66.7,0">守護者の鎧</option>
+      <option value="0,0,20,40,40,0">賢者のローブ</option>
+      <option value="50,0,0,0,50,0">デーモンプレートアーマー</option>
+      <option value="0,0,10,45,45,0">幻影のローブ</option>
+      <option value="8,8,4,0,56,24">光の鎧</option>
+      <option value="0,0,4,48,48,0">大魔導師のローブ</option>
+      <option value="0,0,12.5,50,37.5,0">厄災のヴェール</option>
+      <option value="25,12.5,6.25,0,6.25,50">煉獄の炎鎧</option>
+    </select>
+  </div>
 
-<script>
-const data = {
-  "武器": [
-    {name:"アイアンソード",rank:"F",str:40,dex:20,agi:0,int:20,vit:20,luk:0,tendency:"物理"},
-    {name:"マジックワンド",rank:"F",str:0,dex:20,agi:0,int:40,vit:20,luk:20,tendency:"魔法"}
-  ],
-  "足具": [
-    {name:"レザーブーツ",rank:"F",str:20,dex:20,agi:40,int:0,vit:20,luk:0,tendency:"物理"},
-    {name:"布製のブーツ",rank:"F",str:0,dex:0,agi:40,int:20,vit:20,luk:20,tendency:"魔法"}
-  ],
-  "アクセサリー": [
-    {name:"銅の指輪",rank:"F",str:20,dex:20,agi:20,int:20,vit:20,luk:0,tendency:"平ら"},
-    {name:"銀のペンダント",rank:"E",str:16.7,dex:16.7,agi:25,int:8.3,vit:25,luk:8.3,tendency:"平ら"}
-  ]
-};
+  <div class="category">
+    <label for="boots">足具</label>
+    <select id="boots" onchange="updateSelection()">
+      <option value="">-- 選択してください --</option>
+      <option value="20,20,40,0,20,0">レザーブーツ</option>
+      <option value="0,0,40,20,20,20">布製のブーツ</option>
+      <option value="16.7,16.7,43.3,0,25,0">鉄のブーツ</option>
+      <option value="0,0,43.3,16.7,25,16.7">エナメルブーツ</option>
+      <option value="9.1,9.1,54.5,0,27.3,0">鋼鉄のブーツ</option>
+      <option value="0,0,54.5,9.1,27.3,9.1">クロコダイルブーツ</option>
+      <option value="13.3,13.3,53.4,0,20,0">神秘のブーツ</option>
+      <option value="0,0,53.3,13.3,20,13.3">砂漠のブーツ</option>
+      <option value="15,15,55,0,15,0">竜鱗のブーツ</option>
+      <option value="0,0,55,15,15,15">フォレストブーツ</option>
+      <option value="16,16,52,0,16,0">星空ブーツ</option>
+      <option value="0,0,52,16,16,16">シャドウブーツ</option>
+      <option value="12.5,0,50,12.5,25,0">雷鳴のグリーブス</option>
+    </select>
+  </div>
 
-let selected = {
-  "武器": null,
-  "足具": null,
-  "アクセサリー": null
-};
+  <div class="category">
+    <label for="accessory">アクセサリー</label>
+    <select id="accessory" onchange="updateSelection()">
+      <option value="">-- 選択してください --</option>
+      <option value="20,20,20,20,20,0">銅の指輪</option>
+      <option value="40,20,0,20,20,0">布製のベルト</option>
+      <option value="16.7,16.7,25,8.3,25,8.3">銀のペンダント</option>
+      <option value="25,25,16.7,8.3,16.7,8.3">鋼鉄の腕輪</option>
+      <option value="25,25,20,10,15,5">ルビーの指輪</option>
+      <option value="20,20,20,15,20,5">魔法のネックレス</option>
+      <option value="23.3,23.3,20,10,16.7,6.7">竜の牙</option>
+      <option value="20,20,20,13.3,20,6.7">宝石のブローチ</option>
+      <option value="20,20,20,10,20,10">伝説のメダリオン</option>
+      <option value="20,20,17.5,12.5,17.5,12.5">星屑のリング</option>
+      <option value="20,20,20,10,20,10">神秘のペンダント</option>
+      <option value="20,18,18,14,18,12">太陽のアミュレット</option>
+      <option value="18.75,18.75,18.75,12.5,18.75,12.5">竜王のブレスレット</option>
+      <option value="10,12.5,27.5,27.5,12.5,10">ミスティック・オーブ</option>
+    </select>
+  </div>
 
-const tabsEl = document.getElementById("tabs");
-const itemTable = document.getElementById("itemTable");
-const selectedItemsEl = document.getElementById("selectedItems");
+  <!-- 装備リスト -->
+  <div class="selected-list">
+    <h4>選んだ装備</h4>
+    <ul id="selectedItems">
+      <li>武器：</li>
+      <li>頭具：</li>
+      <li>防具：</li>
+      <li>足具：</li>
+      <li>アクセ：</li>
+    </ul>
+  </div>
 
-Object.keys(data).forEach(cat => {
-  const btn = document.createElement("button");
-  btn.textContent = cat;
-  btn.className = "tab-button";
-  btn.onclick = () => renderTable(cat, btn);
-  tabsEl.appendChild(btn);
-});
+  <!-- 合計ステータス -->
+  <div class="status-box">
+    <div class="status" id="str">STR: 0%</div>
+    <div class="status" id="dex">DEX: 0%</div>
+    <div class="status" id="agi">AGI: 0%</div>
+    <div class="status" id="int">INT: 0%</div>
+    <div class="status" id="vit">VIT: 0%</div>
+    <div class="status" id="luk">LUK: 0%</div>
+  </div>
 
-function renderTable(category, btn) {
-  document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
+  <script>
+    function updateSelection() {
+      const ids = ["weapon", "head", "armor", "boots", "accessory"];
+      const names = ["武器", "頭具", "防具", "足具", "アクセ"];
+      const stats = [0, 0, 0, 0, 0, 0];
 
-  const items = data[category];
-  itemTable.innerHTML = `
-    <tr>
-      <th>アイテム名</th><th>ランク</th><th>STR</th><th>DEX</th><th>AGI</th>
-      <th>INT</th><th>VIT</th><th>LUK</th><th>傾向</th><th>選択</th>
-    </tr>
-  `;
+      const selectedList = document.getElementById("selectedItems");
+      selectedList.innerHTML = "";
 
-  items.forEach(item => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${item.name}</td><td>${item.rank}</td>
-      <td>${item.str}%</td><td>${item.dex}%</td><td>${item.agi}%</td>
-      <td>${item.int}%</td><td>${item.vit}%</td><td>${item.luk}%</td>
-      <td>${item.tendency}</td>
-      <td><button onclick='selectItem("${category}", ${JSON.stringify(item)})'>選択</button></td>
-    `;
-    itemTable.appendChild(row);
-  });
-}
+      ids.forEach((id, index) => {
+        const select = document.getElementById(id);
+        const option = select.options[select.selectedIndex];
+        const statValues = option.value.split(",").map(Number);
 
-function selectItem(category, item) {
-  selected[category] = item;
-  updateSelected();
-  updateTotals();
-}
+        const nameText = option.text || "-- 未選択 --";
+        const listItem = document.createElement("li");
+        listItem.textContent = `${names[index]}：${nameText}`;
+        selectedList.appendChild(listItem);
 
-function updateSelected() {
-  selectedItemsEl.innerHTML = "";
-  for (const [cat, item] of Object.entries(selected)) {
-    const div = document.createElement("div");
-    div.textContent = item ? `[${cat}] ${item.name}` : `[${cat}] 未選択`;
-    selectedItemsEl.appendChild(div);
-  }
-}
+        if (statValues.length === 6) {
+          for (let i = 0; i < 6; i++) {
+            stats[i] += statValues[i];
+          }
+        }
+      });
 
-function updateTotals() {
-  let totals = {str:0,dex:0,agi:0,int:0,vit:0,luk:0};
-  Object.values(selected).forEach(item => {
-    if (item) {
-      totals.str += item.str;
-      totals.dex += item.dex;
-      totals.agi += item.agi;
-      totals.int += item.int;
-      totals.vit += item.vit;
-      totals.luk += item.luk;
+      const keys = ["str", "dex", "agi", "int", "vit", "luk"];
+      keys.forEach((key, i) => {
+        document.getElementById(key).textContent = `${key.toUpperCase()}: ${stats[i].toFixed(1)}%`;
+      });
     }
-  });
-
-  document.getElementById("strTotal").textContent = `STR: ${totals.str.toFixed(1)}%`;
-  document.getElementById("dexTotal").textContent = `DEX: ${totals.dex.toFixed(1)}%`;
-  document.getElementById("agiTotal").textContent = `AGI: ${totals.agi.toFixed(1)}%`;
-  document.getElementById("intTotal").textContent = `INT: ${totals.int.toFixed(1)}%`;
-  document.getElementById("vitTotal").textContent = `VIT: ${totals.vit.toFixed(1)}%`;
-  document.getElementById("lukTotal").textContent = `LUK: ${totals.luk.toFixed(1)}%`;
-}
-
-// 初期表示
-renderTable("武器", document.querySelector(".tab-button"));
-updateSelected();
-updateTotals();
-</script>
-
+  </script>
 </body>
 </html>
